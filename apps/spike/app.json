@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "spike",
+    "slug": "spike",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.helmmxfarma.spike",
+      "appleTeamId": "Z2G8RSF85P",
+      "infoPlist": {
+        "NSCameraUsageDescription": "La cámara se usa para la escena de realidad aumentada.",
+        "NSPhotoLibraryAddUsageDescription": "Guardar capturas del spike."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-dev-client",
+      [
+        "@reactvision/react-viro",
+        {
+          "provider": "none",
+          "telemetry": false,
+          "ios": {
+            "cameraUsagePermission": "La cámara se usa para la escena de realidad aumentada."
+          }
+        }
+      ]
+    ]
+  }
+}

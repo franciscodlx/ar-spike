@@ -1,0 +1,12 @@
+{
+  "name": "ar-spike",
+  "private": true,
+  "packageManager": "pnpm@12.4.2",
+  "scripts": {
+    "ios": "turbo run ios --filter=spike",
+    "dev": "turbo run start --filter=spike"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  }
+}
