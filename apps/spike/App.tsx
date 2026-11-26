@@ -7,17 +7,19 @@ import { ViroARSceneNavigator } from '@reactvision/react-viro';
 import { AnchorScene } from './src/ar/AnchorScene';
 import { Hud } from './src/ar/Hud';
 import { BoardScreen } from './src/board/BoardScreen';
+import { GlassesScreen } from './src/glasses/GlassesScreen';
 
-type Tab = 'ar' | 'board';
+type Tab = 'ar' | 'board' | 'glasses';
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'ar', label: 'AR · Día 2' },
-  { id: 'board', label: 'Tablero · Día 3' },
+  { id: 'ar', label: 'AR' },
+  { id: 'board', label: 'Tablero' },
+  { id: 'glasses', label: 'Gafas' },
 ];
 
 export default function App() {
   // Benchmarks must not be cut short by auto-lock.
   useKeepAwake();
-  const [tab, setTab] = useState<Tab>('board');
+  const [tab, setTab] = useState<Tab>('ar');
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -27,8 +29,10 @@ export default function App() {
           <ViroARSceneNavigator autofocus initialScene={{ scene: AnchorScene }} style={styles.container} />
           <Hud />
         </View>
-      ) : (
+      ) : tab === 'board' ? (
         <BoardScreen />
+      ) : (
+        <GlassesScreen />
       )}
 
       <View style={styles.tabs}>

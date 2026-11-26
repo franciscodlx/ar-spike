@@ -1,0 +1,12 @@
+{
+  "name": "@spike/meta-wearables",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Expo module wrapping Meta Wearables Device Access Toolkit (iOS) for the spike",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "peerDependencies": {
+    "expo": "*",
+    "react-native": "*"
+  }
+}

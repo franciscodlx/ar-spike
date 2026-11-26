@@ -37,3 +37,50 @@ con `useFrameCallback`, ProMotion activado (`CADisableMinimumFrameDurationOnPhon
 
 **Veredicto A (match-3): GO.** Supera con amplitud el criterio de 60 fps mínimo y se sostiene cerca
 de 120 Hz con cascadas continuas. Aún no hay efectos de partículas: medirlos cuando se agreguen.
+
+## Día 4 — Sample iOS de Meta (Wearables Device Access Toolkit)
+
+- SDK `MetaWearablesDAT` 1.1.0 (developer preview, 20-nov-2026) vía SPM. Requisitos: Xcode 26.4+,
+  iOS 17.2+, firmware Ray-Ban Meta V130, Meta AI V292.
+- Sample `CameraAccess` (rama `main` de github.com/meta/meta-wearables-dat-ios, clonado en
+  `~/Dev/apps/meta-wearables-dat-ios`) compilado con team Helm (Z2G8RSF85P) como
+  `com.helmmxfarma.cameraaccess`, en Developer Mode (sin `META_APP_ID`/`CLIENT_TOKEN`). Instalado en el iPhone.
+- Firma automática aceptó los entitlements `HotspotConfiguration` y `wifi-info`.
+- OK (26-nov-2026): MockDeviceKit, registro vía Meta AI en Developer Mode, stream y foto con las
+  Ray-Ban Meta reales. **Disponibilidad en México confirmada en la práctica** (la documentación no
+  publica lista de países).
+- Incidencia: en la primera corrida la app se quedó congelada y hubo que matarla desde la Mac; no dejó
+  reporte de hang. En la segunda corrida todo funcionó. Vigilar si se repite.
+- Latencia de la foto: no medida con precisión en el sample; se medirá desde JS en el día 5.
+
+**Veredicto parcial D (gafas): GO** para la integración; falta medir latencia y estabilidad de 10 min.
+
+## Día 5 — Módulo nativo `@spike/meta-wearables` (Expo Modules)
+
+Módulo local Swift sobre DAT 1.1.0 con API JS: `register()`, `connect()`, `startStream()`,
+`capturePhoto(maxSide)` (devuelve `file://` JPEG reducido + latencia medida en nativo), `stop()` y
+evento `onStateChange` (registro, dispositivos, gafas activas, sesión, stream, mock).
+Probado el 26-nov-2026 con las Ray-Ban Meta reales en el iPhone 17 Pro.
+
+| Métrica | Valor |
+| --- | --- |
+| Fotos manuales | 21 · prom 460 ms · p95 685 ms |
+| Prueba 10 min (1 foto c/30 s) | 20 fotos · prom 472 ms · p95 836 ms · máx 836 ms |
+| Fallos de foto en 10 min | 0 |
+| Cortes de stream en 10 min | 1 (recuperado por reconexión automática, sin pérdida de fotos) |
+
+**Veredicto D (gafas): GO.** La foto llega en menos de 1 s (criterio: < 3 s) y la conexión se
+sostuvo 10 min sin fallos. El corte de stream observado obliga a que la app de producción
+reconecte de forma transparente, como hace el spike.
+
+Hallazgos de integración (para el diseño definitivo):
+- Los frameworks del SDK son dinámicos: `spm_dependency` los enlaza pero no los embebe (crash dyld
+  al abrir). Se usan como `vendored_frameworks`; tras clonar, correr
+  `packages/meta-wearables/scripts/fetch-sdk.sh`.
+- Expo reserva `startObserving`/`stopObserving` en módulos con eventos; no usar esos nombres.
+- `AutoDeviceSelector` debe vivir todo el ciclo de la app (como en el sample); creado justo antes de
+  `createSession` da `noEligibleDevice`.
+- `startRegistration()` falla con `alreadyRegistered` si ya hay registro: tratarlo como éxito.
+- Los entitlements `HotspotConfiguration`/`wifi-info` exigen App ID explícito: compilar con
+  `xcodebuild ... -allowProvisioningUpdates` (el perfil comodín de `expo run:ios` falla).
+- Metro llegó a servir JS en caché obsoleto tras renombrar funciones nativas: usar `expo start --clear`.
