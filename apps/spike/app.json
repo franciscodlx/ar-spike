@@ -12,7 +12,8 @@
       "appleTeamId": "Z2G8RSF85P",
       "infoPlist": {
         "NSCameraUsageDescription": "La cámara se usa para la escena de realidad aumentada.",
-        "NSPhotoLibraryAddUsageDescription": "Guardar capturas del spike."
+        "NSPhotoLibraryAddUsageDescription": "Guardar capturas del spike.",
+        "CADisableMinimumFrameDurationOnPhone": true
       }
     },
     "android": {

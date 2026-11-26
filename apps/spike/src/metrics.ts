@@ -69,6 +69,11 @@ const percentile = (sorted: number[], p: number) =>
 
 export function stopRun(): RunSummary {
   run.active = false;
+  return summarizeRun();
+}
+
+/** Summary so far without stopping: logged periodically so a crash keeps the data. */
+export function summarizeRun(): RunSummary {
   // Drop the first second: it includes the warm-up after tapping start.
   const secs = run.seconds.slice(1).map((s) => s.fps);
   const fpsSorted = [...secs].sort((a, b) => a - b);

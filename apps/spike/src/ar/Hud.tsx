@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Battery from 'expo-battery';
 import { getThermalState, isLowPowerMode, type ThermalState } from '../../modules/device-metrics';
-import { isRunning, runElapsedSeconds, startRun, stopRun, takeSecond, type RunSummary } from '../metrics';
+import { isRunning, runElapsedSeconds, startRun, stopRun, summarizeRun, takeSecond, type RunSummary } from '../metrics';
 import { sceneBus } from './sceneBus';
 
 const RUN_SECONDS = 5 * 60;
@@ -30,6 +30,10 @@ export function Hud() {
       setElapsed(t);
       const last = thermalLog.current[thermalLog.current.length - 1];
       if (!last || last.state !== thermal) thermalLog.current.push({ t, state: thermal });
+      if (t > 0 && t % 30 === 0 && t < RUN_SECONDS) {
+        // Checkpoint: if the app dies mid-run, Metro already has the data up to here.
+        console.log('SPIKE_PROGRESS ' + JSON.stringify({ t, thermal, batteryPct: Math.round(battery * 100), ...summarizeRun() }));
+      }
       if (t >= RUN_SECONDS) finish(thermal, battery);
     }, 1000);
     return () => {
@@ -118,7 +122,7 @@ function thermalColor(t?: ThermalState) {
 }
 
 const styles = StyleSheet.create({
-  root: { ...StyleSheet.absoluteFill, justifyContent: 'space-between', paddingTop: 60, paddingBottom: 40 },
+  root: { ...StyleSheet.absoluteFill, justifyContent: 'space-between', paddingTop: 116, paddingBottom: 40 },
   panel: {
     alignSelf: 'flex-start',
     marginLeft: 16,

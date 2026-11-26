@@ -21,13 +21,20 @@ ViroMaterials.createMaterials({
 
 const BASE_SIZE = 0.1; // 10 cm cube
 
+type Vec3 = [number, number, number];
+
 /**
  * Día 2: detect horizontal planes, tap one to anchor the cube,
  * then drag (move), pinch (scale) and two-finger rotate it.
+ *
+ * The cube lives in WORLD space at the tap point, not as a child of the plane.
+ * ARKit merges/replaces planes during the first minutes; a cube parented to the
+ * plane gets destroyed with it, and ViroKit 3.2.3 segfaults in
+ * VROInputControllerAR::processDragging if that happens mid-drag.
  */
 export function AnchorScene() {
   const selectorRef = useRef<ViroARPlaneSelector>(null);
-  const [placed, setPlaced] = useState(false);
+  const [position, setPosition] = useState<Vec3 | null>(null);
   const [scale, setScale] = useState(1);
   const [rotationY, setRotationY] = useState(0);
   const pinchBase = useRef(1);
@@ -35,7 +42,7 @@ export function AnchorScene() {
 
   sceneBus.resetPlane = () => {
     selectorRef.current?.reset();
-    setPlaced(false);
+    setPosition(null);
     setScale(1);
     setRotationY(0);
     sceneBus.onPlacedChange?.(false);
@@ -43,8 +50,7 @@ export function AnchorScene() {
 
   const onPinch = (state: number, factor: number) => {
     if (state === ViroPinchStateTypes.PINCH_START) pinchBase.current = scale;
-    const next = Math.min(5, Math.max(0.3, pinchBase.current * factor));
-    setScale(next);
+    setScale(Math.min(5, Math.max(0.3, pinchBase.current * factor)));
   };
 
   const onRotate = (state: number, factor: number) => {
@@ -66,7 +72,7 @@ export function AnchorScene() {
       <ViroAmbientLight color="#ffffff" intensity={300} />
       <ViroDirectionalLight color="#ffffff" direction={[0, -1, -0.3]} />
 
-      {!placed && (
+      {!position && (
         <ViroText
           text="Apunta a la mesa y toca el plano"
           position={[0, 0, -1]}
@@ -81,21 +87,27 @@ export function AnchorScene() {
       <ViroARPlaneSelector
         ref={selectorRef}
         alignment="Horizontal"
-        onPlaneSelected={() => {
-          setPlaced(true);
+        onPlaneSelected={(_plane, tap) => {
+          if (!tap) return; // no world-space hit: let the user tap again
+          setPosition(tap);
           sceneBus.onPlacedChange?.(true);
         }}
-      >
+      />
+
+      {position && (
         <ViroNode
+          position={position}
+          rotation={[0, rotationY, 0]}
           dragType="FixedToWorld"
-          onDrag={() => {}}
+          // Keep React's position in sync with the native drag so a re-render
+          // from pinch/rotate doesn't snap the cube back to the tap point.
+          onDrag={(to) => setPosition([to[0], to[1], to[2]])}
           onPinch={onPinch}
           onRotate={onRotate}
-          rotation={[0, rotationY, 0]}
         >
           <ViroBox position={[0, s / 2, 0]} scale={[s, s, s]} materials={['cube']} />
         </ViroNode>
-      </ViroARPlaneSelector>
+      )}
     </ViroARScene>
   );
 }
