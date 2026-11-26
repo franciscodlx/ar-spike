@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Battery from 'expo-battery';
-import { getThermalState, isLowPowerMode, type ThermalState } from '../../modules/device-metrics';
+import { getThermalState, isLowPowerMode, unlockArFrameRate, type ThermalState } from '../../modules/device-metrics';
 import { isRunning, runElapsedSeconds, startRun, stopRun, summarizeRun, takeSecond, type RunSummary } from '../metrics';
 import { sceneBus } from './sceneBus';
 
@@ -16,6 +16,30 @@ export function Hud() {
   const [summary, setSummary] = useState<string | null>(null);
   const runStart = useRef<{ thermal: ThermalState; battery: number; lowPower: boolean } | null>(null);
   const thermalLog = useRef<{ t: number; state: ThermalState }[]>([]);
+  // ViroKit caps rendering at 30 fps on anything newer than A12; lift it once the AR view exists.
+  const [renderCap, setRenderCapState] = useState<'30 Hz (Viro)' | '60 Hz' | 'n/d'>('30 Hz (Viro)');
+  // finish() runs from the interval closure created at mount, so it reads the ref, not stale state.
+  const renderCapRef = useRef(renderCap);
+  const setRenderCap = (v: typeof renderCap) => {
+    renderCapRef.current = v;
+    setRenderCapState(v);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    let tries = 0;
+    const attempt = async () => {
+      const patched = await unlockArFrameRate(60).catch(() => -1);
+      if (cancelled) return;
+      if (patched > 0) return setRenderCap('60 Hz');
+      if (patched < 0 || ++tries > 20) return setRenderCap('n/d');
+      setTimeout(attempt, 250);
+    };
+    attempt();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     sceneBus.onPlacedChange = setPlaced;
@@ -64,6 +88,7 @@ export function Hud() {
       batteryStartPct: Math.round(start.battery * 100),
       batteryEndPct: Math.round(battery * 100),
       lowPowerMode: start.lowPower,
+      renderCap: renderCapRef.current,
     };
     // Metro prints this; it is the raw data for the go/no-go report.
     console.log('SPIKE_RESULT ' + JSON.stringify(report));
@@ -86,6 +111,7 @@ export function Hud() {
         </Text>
         <Text style={[styles.line, thermalColor(snap?.thermal)]}>térmico: {snap?.thermal ?? '—'}</Text>
         <Text style={styles.line}>batería: {snap ? Math.round(snap.battery * 100) : '—'}%</Text>
+        <Text style={styles.line}>render: {renderCap}</Text>
         {running && (
           <Text style={styles.line}>
             prueba: {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, '0')} restantes

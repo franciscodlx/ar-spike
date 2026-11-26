@@ -84,3 +84,36 @@ Hallazgos de integración (para el diseño definitivo):
 - Los entitlements `HotspotConfiguration`/`wifi-info` exigen App ID explícito: compilar con
   `xcodebuild ... -allowProvisioningUpdates` (el perfil comodín de `expo run:ios` falla).
 - Metro llegó a servir JS en caché obsoleto tras renombrar funciones nativas: usar `expo start --clear`.
+
+## Día 6 — App integrada (AR · Tablero · Gafas)
+
+Una sola app `apps/spike` con las 3 pantallas en pestañas; solo una montada a la vez (AR libera
+cámara y GPU al salir). Probado el 26-nov-2026: cambio entre pestañas sin congelamientos ni cierres,
+Tablero a 119 fps y foto de gafas en 692 ms dentro de la app integrada.
+
+### Hallazgo: ViroReact limita el render AR a 30 fps en equipos nuevos
+
+`-[VROViewAR initRenderer:]` (ViroKit 3.2.3) fija `preferredFramesPerSecond = 30` en su
+`CADisplayLink` salvo que `-[VRODeviceUtil isBionicA12]` sea verdadero, y esa comprobación solo
+reconoce los iPhone con A12 (`iPhone11,x`). Cualquier iPhone posterior, incluido el 17 Pro, queda en
+30 fps. Primera medición en la app integrada: 30 fps, 30 frames lentos/s, peor 33 ms.
+
+Mitigación en el spike: `unlockArFrameRate()` en el módulo local `device-metrics` localiza la
+`VROViewAR` montada y ajusta su `_displayLink` a 60 Hz con `preferredFrameRateRange`, sin tocar
+node_modules. El HUD muestra `render: 60 Hz` cuando se aplicó. Es un parche sobre una ivar privada:
+reportarlo a ReactVision y no depender de él a largo plazo.
+
+### Prueba de 5 min de AR (criterio C, pendiente desde el día 2)
+
+| Métrica | Valor |
+| --- | --- |
+| Duración | 300.5 s, sin crashes |
+| fps promedio / mínimo / p5 | 60.1 / 59 / 60 |
+| Frames lentos (> 20.7 ms) | 0 % |
+| p95 de tiempo de frame | 16.9 ms |
+| Estado térmico | nominal → nominal |
+| Batería | 100 % → 100 % (el iPhone estaba conectado; consumo no medido) |
+
+**Veredicto C (AR): GO**, condicionado a mantener el parche del límite de 30 fps de Viro (o a que
+ReactVision lo corrija). El crash del día 2 (`processDragging`) no volvió a aparecer.
+Pendiente menor: medir el consumo de batería con el iPhone desconectado.
