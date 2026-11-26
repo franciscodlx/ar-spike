@@ -178,9 +178,15 @@ importers:
       expo:
         specifier: ~58.1.0
         version: 58.1.0(@babel/core@7.29.13(supports-color@8.1.1))(@expo/dom-webview@58.0.2)(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@types/react@19.3.3)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)(supports-color@8.1.1)(typescript@6.0.3)
+      expo-battery:
+        specifier: ~58.0.4
+        version: 58.0.4(expo@58.1.0)(react@19.3.0)
       expo-dev-client:
         specifier: ~58.0.22
         version: 58.0.22(expo@58.1.0)(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@types/react@19.3.3)(react@19.3.0)(supports-color@8.1.1))
+      expo-keep-awake:
+        specifier: ~58.0.4
+        version: 58.0.4(expo@58.1.0)(react@19.3.0)
       expo-status-bar:
         specifier: ~58.0.5
         version: 58.0.5(expo@58.1.0)(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@types/react@19.3.3)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
@@ -1311,6 +1317,12 @@ packages:
       expo: '*'
       react: '*'
       react-native: '*'
+
+  expo-battery@58.0.4:
+    resolution: {integrity: sha512-yX5n2pAUxY95wfL1CU20E5ZDoIA8P8qV1vMf6yZ6e31gMAUEBSpSbnjKJiA5hflIhWg2V3NsnrDSQGXXXJS43Q==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
 
   expo-constants@58.0.16:
     resolution: {integrity: sha512-sVETnE1ktBMclc2Ve3qNrHhOCCio75a9JdghnJYGbqblmKfrrfE+lO9K4g9kNtmslIBLTK9Dyty6PbubkXs3Yw==}
@@ -3738,6 +3750,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
+
+  expo-battery@58.0.4(expo@58.1.0)(react@19.3.0):
+    dependencies:
+      expo: 58.1.0(@babel/core@7.29.13(supports-color@8.1.1))(@expo/dom-webview@58.0.2)(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@types/react@19.3.3)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)(supports-color@8.1.1)(typescript@6.0.3)
+      react: 19.3.0
 
   expo-constants@58.0.16(expo@58.1.0)(react-native@0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(@types/react@19.3.3)(react@19.3.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3):
     dependencies:
