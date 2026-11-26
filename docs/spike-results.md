@@ -117,3 +117,24 @@ reportarlo a ReactVision y no depender de él a largo plazo.
 **Veredicto C (AR): GO**, condicionado a mantener el parche del límite de 30 fps de Viro (o a que
 ReactVision lo corrija). El crash del día 2 (`processDragging`) no volvió a aparecer.
 Pendiente menor: medir el consumo de batería con el iPhone desconectado.
+
+## Día 7 — Go/no-go y build Release
+
+Reporte de una página: https://claude.ai/artifact/5uoy3wH6kboRt49WCJo3cH — **veredicto global GO**
+(A, C y D en GO; C condicionado al parche de 30 fps de Viro).
+
+Build Release (26-nov-2026), sin subir a App Store Connect:
+
+```
+cd apps/spike/ios
+xcodebuild -workspace spike.xcworkspace -scheme spike -configuration Release \
+  -destination "generic/platform=iOS" -archivePath build/spike.xcarchive \
+  -allowProvisioningUpdates DEVELOPMENT_TEAM=Z2G8RSF85P CODE_SIGN_STYLE=Automatic archive
+```
+
+- ARCHIVE SUCCEEDED: app de 99 MB con `main.jsbundle`, los 3 frameworks MWDAT embebidos y los
+  entitlements `HotspotConfiguration`/`wifi-info`.
+- El archivo está firmado con certificado de desarrollo; la firma de distribución se valida al exportar
+  (`xcodebuild -exportArchive` con método `app-store-connect`), que requiere el registro de la app
+  `com.helmmxfarma.spike` en App Store Connect. Pendiente por decisión: no se subió nada.
+- `MWDATMockDevice` viaja también en Release; excluirlo de builds de producción.
